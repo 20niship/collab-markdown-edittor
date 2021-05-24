@@ -1,0 +1,337 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta charset="UTF-8">
+<title>Realtime Collab</title>
+<script type="text/javascript" src="fastdiff.js"></script>
+
+<style type="text/css">
+body{
+    background-color: #333;
+    color:#fff;
+}
+
+textarea, input{
+    background-color: #111;
+    color:#fff;
+    border: solid 1px #777;
+}
+
+textarea{ width: 90%; }
+
+
+#EditorTextArea{
+    background-color: #111;
+    color:#fff;
+    border: solid 1px #777;
+    width:90%;
+    min-height:100px;
+    cursor: text;
+    outline: none;
+    outline-color: currentcolor;
+    overflow-y: auto;
+    padding: 12px 15px;
+    tab-size: 4;
+    text-align: left;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+</style>
+
+
+<script src="/socket.io/socket.io.js"></script>
+<script type="text/javascript">
+
+const socket = io.connect("http://localhost:8080");
+console.log("Connecting to server .......");
+
+
+function strIns(str, idx, val){
+  return  (str.slice(0, idx) + val + str.slice(idx));
+};
+function strDel(str, idx, num=1){
+  var res = str.slice(0, idx) + str.slice(idx + num);
+  return res;
+};
+
+
+socket.on('connect', function () {
+  const isNullJSON = function(obj) {
+    return obj && obj.constructor === Object
+  }
+
+  console.log("Success!!");
+  
+  socket.emit("messsage", "Hello world!",function(msg){
+    console.log(msg);
+  });
+
+  socket.on('message',function(msg){//サーバからのレスポンスを受け取る
+    var jmsg = JSON.parse(msg);
+    let val = document.getElementById('EditorTextArea');
+
+    switch(jmsg.type){
+      case "write":
+      case "curMove":
+        if(jmsg.delete !== 0){
+          console.log(jmsg.delete);
+          val.innerHTML = strDel(val.innerHTML, jmsg.c.start-1, jmsg.delete);
+        }
+        if(jmsg.insert !== ""){
+          val.innerHTML = strIns(val.innerHTML, jmsg.c.start, jmsg.insert);
+        }
+    }
+  });
+
+  socket.on('exit',function(msg){//終了を受け取ったらSocket通信を終了する
+    console.log(msg);
+    socket.disconnect()
+  });
+});
+
+
+
+var cursor_pos; // 現在のカーソル位置を指定するグローバル変数。
+var cmdNum = 0;
+var nowIME = false;
+var lastIMEstr = "";
+
+function updateCursorPos(element) {
+    var startOffset = 0, endOffset = 0;
+    if (typeof window.getSelection != "undefined") {
+        var range = window.getSelection().getRangeAt(0);
+        var preCaretRange = range.cloneRange();
+        preCaretRange.selectNodeContents(element);
+        preCaretRange.setEnd(range.startContainer, range.startOffset);
+        startOffset = preCaretRange.toString().length;
+        endOffset = startOffset + range.toString().length;
+    } else if (typeof document.selection != "undefined" &&
+        document.selection.type != "Control") {
+        var textRange = document.selection.createRange();
+        var preCaretTextRange = document.body.createTextRange();
+        preCaretTextRange.moveToElementText(element);
+        preCaretTextRange.setEndPoint("EndToStart", textRange);
+        startOffset = preCaretTextRange.text.length;
+        endOffset = startOffset + textRange.text.length;
+    }
+
+    // 行と行内の位置を取得する
+    var p = element.innerHTML.substr(0, startOffset).split("\n");
+    var _line = p.length;
+    var _col = p[p.length-1].length;
+
+    cursor_pos = { start: startOffset, end: endOffset, line:_line, col:_col, isSelectingRange: startOffset !== endOffset };
+}
+
+
+
+// function setCaretPos(el, pos) {
+//     if(pos < 0) pos = 0;
+//     if(pos > el.innerHTML.length) pos = el.innerHTML.length;
+//     var range = document.createRange()
+//     var sel = window.getSelection()
+//     range.setStart(el.childNodes[0], pos)
+//     range.collapse(true)
+//     sel.removeAllRanges()
+//     sel.addRange(range)
+// }
+// function setCaretGoDown(element){
+//   var i = element.innerHTML.IndexOf("\n", cursor_pos.start);
+//   var j = element.innerHTML.IndexOf("\n", i);
+//   setCaretPos(element, Math.min(i + cursor_pos.col, j));
+// }
+// function setCaretGoUp(element){
+//   if(cursor_pos.start - cursor_pos.col - 1 < 0){
+//     setCaretPos(element, 0);
+//   }
+//   var i = element.innerHTML.lastIndexOf("\n", cursor_pos.start - cursor_pos.col - 1);
+//   setCaretPos(element, Math.min(i + cursor_pos.col, cursor_pos.start - cursor_pos.col - 1));
+// }
+
+var last_text = "";
+function _onChange(e){
+  let val = document.getElementById('EditorTextArea');
+  // updateCursorPos(val);
+  if(val.innerText === last_text) return {};
+
+  var result_diff = diff(val.innerText, last_text, 0);
+
+  var index = 0;
+  var diff2 = [];
+  result_diff.forEach(dd => {
+    switch(dd[0]){
+      case 0:
+        break;
+      case -1:
+        diff2.push({ type:"insert", str:dd[1], strlen:dd[1].length })
+        break;
+      case 1:
+        diff2.push({ type:"delete", str:dd[1], strlen:dd[1].length })
+        break;
+    }
+
+    index += dd[1].length;
+  });
+  console.log(diff2);
+  last_text = val.innerText;
+
+  return diff2;
+}
+
+
+//----------------------  binding  -------------------------------
+function _onKeyUp(e) {
+  // let evtobj = window.event ? event : e
+  // let val = document.getElementById('EditorTextArea');
+  // updateCursorPos(val);
+  // var result_diff = diff(val.innerHTML, last_text, 0);
+  // console.log(result_diff);
+  // last_text = val.innerHTML;
+ 
+
+
+  var ws_msg = { type:"text-change", user:"guest", fname:"temp", "data":_onChange() };
+  // user_id : user id
+  // n : コマンドの番号
+  // file : ファイル名
+  // type : [curMove, write, connect, disconnect, allText]
+  // c : cursor_pos
+  // insert : 追加される文字列
+  // delete : 削除する文字数
+  // -------------------------  IME ---------------------------------
+  // switch(evtobj.type){
+  //   case "compositionstart":
+  //     ws_msg = {file : "example", n : cmdNum, type : "write", c : cursor_pos, insert : evtobj.data}
+  //     lastIMEstr = evtobj.data;
+  //     nowIME = true;
+  //     break;
+  //   case "compositionupdate":
+  //     ws_msg = {file : "example", n : cmdNum, type : "write", c : cursor_pos, insert : evtobj.data, delete : lastIMEstr.length}
+  //     lastIMEstr = evtobj.data;
+  //     nowIME = true;
+  //     break;
+  //   case "compositionend":
+  //     ws_msg = {file : "example", n : cmdNum, type : "write", c : cursor_pos, insert : evtobj.data, delete : lastIMEstr.length}
+  //     lastIMEstr = evtobj.data;
+  //     nowIME = false;
+  //     break;
+  //   default:
+  //     if(evtobj.ctrlKey){
+  //       switch(evtobj.keyCode){
+  //         case 65: // A 
+  //           ws_msg = {file : "example", n : cmdNum, type : "curMove", c : cursor_pos, insert:"", delete:0}
+  //           break;
+  //         case 86: // V
+  //           const clText = navigator.clipboard.readText();
+  //           ws_msg = {file : "example", n : cmdNum, type : "write", c : cursor_pos, insert:clText , delete:cursor_pos.end - cursor_pos.start }
+  //           break;
+  //         case 88: // X
+  //          ws_msg = {file : "example", n : cmdNum, type : "write", c : cursor_pos, delete : cursor_pos.end - cursor_pos.start }
+  //         case 37: 
+  //         case 38:
+  //         case 39:
+  //         case 40:
+  //           ws_msg = {file : "example", n : cmdNum, type : "curMove", c : cursor_pos, insert:"", delete:0}
+  //           break;
+  //       }
+  //     }else{
+  //       switch(evtobj.keyCode){
+  //         case 229: // IME 本当はKeyCodeはDeprecatedになったらしいが動くのでヨシ
+  //         case 16:
+  //         case 18:
+  //         case 17: break;// Ctrl
+  //         case 37: //Arrow keys
+  //         case 38:
+  //         case 39:
+  //         case 40:
+  //         case 36: // Home
+  //         case 35: //End
+  //           ws_msg = {file : "example", n : cmdNum, type : "curMove", c : cursor_pos, insert:"", delete:0}
+  //           break;
+  //         case 8 : // backspace
+  //           ws_msg = {file : "example", n : cmdNum, type : "curMove", c : cursor_pos, insert:"", delete:1}
+  //           break;
+  //         case 9 :  // tab
+  //           // TODO：タブの設定をするべき
+  //           ws_msg = {file : "example", n : cmdNum, type : "write", c : cursor_pos, insert:"\t", delete:0}
+  //           break;
+  //         case 13: // Enter
+  //           // TODO：Enter時のタブの設定をするべき
+  //           ws_msg = {file : "example", n : cmdNum, type : "write", c : cursor_pos, insert:"\n", delete:0}
+  //           break;
+  //         default:
+  //           ws_msg = {file : "example", n : cmdNum, type : "write", c : cursor_pos, insert : evtobj.key, delete:0}
+  //           break;
+  //     }
+  //   }
+  // }
+  
+  if(ws_msg !== {}){
+    console.log(ws_msg);
+    socket.emit("message", JSON.stringify(ws_msg));
+    cmdNum += 1;
+  }
+  return true;
+}
+
+
+function _onPaste(){ return true; }
+function _onCut()  { return true; }
+function _onDrop(e){ return true; }
+function _scroll() { 
+  // console.log("text changed");
+
+  let evtobj = window.event ? event : e
+  let val = document.getElementById('EditorTextArea');
+  var cursor_pos = val.selectionStart;
+  var cursor_end = val.selectionEnd;
+  var isCursorSelectingRange = cursor_end !== cursor_pos.start;
+
+  console.log(cursor_pos.start, cursor_end, isCursorSelectingRange);
+
+  return true; 
+}
+
+</script>
+
+</head>
+<body>
+    <h1>Realtime Text Collabolator</h1>
+    <div id="user_form">
+        <input placeholder="user name"> </input>
+    </div>
+
+    <h2>Editor</h2>
+    <div id="editor" >
+        <div id="EditorTextArea" 
+          tabindex="-1"  contenteditable="true"
+          oncut="return true;" onpaste="return true;" onkeydown="return true" ondrop="return true;"
+          ondragenter="return true;"  ondragleave="return true;"  ondragover="return true;" 
+        > Some test....<br></div>
+    </div>
+
+    <h2>Messages</h2>
+    <div>
+        <textarea readonly id="log">
+
+        </textarea>
+    </div>
+
+    <script>
+      window.onload = function(){
+        var editorDiv = document.getElementById('EditorTextArea');
+        editorDiv.addEventListener('compositionstart', _onKeyUp);
+        editorDiv.addEventListener('compositionupdate', _onKeyUp);
+        editorDiv.addEventListener('compositionend', _onKeyUp);
+        editorDiv.addEventListener('keyup', _onKeyUp);
+        editorDiv.addEventListener('scroll', _scroll);
+      };
+    
+    </script>
+</body>
+
+
+</html>
