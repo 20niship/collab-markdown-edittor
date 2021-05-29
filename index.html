@@ -4,8 +4,10 @@
 <head>
 
 <meta charset="UTF-8">
-<title>Realtime Collab</title>
+<title>Realtime Collab MarkDown Editor</title>
 <script type="text/javascript" src="fastdiff.js"></script>
+
+<link href="https://use.fontawesome.com/releases/v5.6.1/css/all.css" rel="stylesheet">
 
 <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.10/styles/vs.min.css"> -->
 <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.10/highlight.min.js"></script> -->
@@ -41,6 +43,24 @@ textarea{ width: 90%; }
     text-align: left;
     white-space: pre-wrap;
     word-wrap: break-word;
+}
+
+header{
+  overflow: hidden;
+  background-color: #333;
+  position: fixed; /* Set the navbar to fixed position */
+  top: 0; /* Position the navbar at the top of the page */
+  width: 100%; /* Full width */
+}
+
+footer{
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  background-color: red;
+  color: white;
+  text-align: center;
 }
 
 /*----------------------------------------------------------
@@ -469,12 +489,55 @@ function _scroll() {
 
 </head>
 <body>
+  <header>
     <h1>Realtime Text Collabolator</h1>
     <div id="user_form">
         <input placeholder="user name"> </input>
     </div>
 
-    <h2>Editor</h2>
+    <div class="ui">
+      <div id="menu">
+          <div class="menu-btn"><a id="btn_bold" class="ui-btn" title="bold"><i class="fas fa-bold"></i></a></div>
+          <div class="menu-btn"><a id="btn_italic" class="ui-btn" title="italic"><i class="fas fa-italic"></i></a></div>
+          <div class="menu-btn"><a id="btn_code" class="ui-btn" title="code"><i class="fas fa-code"></i></a></div>
+          <div class="menu-btn"><a id="btn_link" class="ui-btn" title="link"><i class="fas fa-link"></i></a></div>
+          <div class="menu-btn"><a id="btn_ul" class="ui-btn" title="list-ul"><i class="fas fa-list-ul"></i></a></div>
+          <div class="menu-btn"><a id="btn_ol" class="ui-btn" title="list-ol"><i class="fas fa-list-ol"></i></a></div>
+      </div>
+
+      <style type="text/css">
+        a{color: #fff;}
+        a:hover, a:visited {color: #CCFFFF;}
+        
+        .menu{
+            width: 100%;
+            display: table;
+            table-layout: fixed;
+        }
+
+        .menu-btn{
+            display: table-cell;
+            vertical-align: middle;
+            width:40px;
+            height:40px;
+            margin:10px;
+            text-align: center;
+        }
+
+        .menu-btn:hover{
+          background-color: #777;
+        }
+
+        .ui-btn{border: solid 1px #333;}
+        /* .ui-btn:hover { background-color: #777; } */
+        i{ font-size: 20px; color :#fff; }
+        </style>
+
+    </div>
+  </header>
+
+  <main>
+    
     <!-- <pre> -->
       <!-- <code  id="editor"> -->
         <div class="markdown" id="EditorTextArea" 
@@ -509,6 +572,8 @@ Some test....
           ondragenter="return true;"  ondragleave="return true;"  ondragover="return true;" 
         > Some test....<br></p>
     </div> -->
+
+  </main>
 
     <h2>Messages</h2>
     <div>
