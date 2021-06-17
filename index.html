@@ -14,6 +14,7 @@
 <!-- <script>hljs.initHighlightingOnLoad();</script> -->
 
 <style type="text/css">
+*{color:#fff;}
 body{
     background-color: #333;
     color:#fff;
@@ -33,8 +34,8 @@ textarea{ width: 90%; }
     color:#fff;
     border: solid 1px #777;
     width:90%;
-    min-height:100px;
-    cursor: text;
+    min-height:300px;
+    /* cursor: text;
     outline: none;
     outline-color: currentcolor;
     overflow-y: auto;
@@ -42,15 +43,15 @@ textarea{ width: 90%; }
     tab-size: 4;
     text-align: left;
     white-space: pre-wrap;
-    word-wrap: break-word;
+    word-wrap: break-word; */
 }
 
 header{
-  overflow: hidden;
+  /* overflow: hidden; */
   background-color: #333;
-  position: fixed; /* Set the navbar to fixed position */
-  top: 0; /* Position the navbar at the top of the page */
-  width: 100%; /* Full width */
+  /* position: fixed; 
+  top: 0;  */
+  width: 100%;
 }
 
 footer{
@@ -86,12 +87,17 @@ footer{
 
 .e-h5, .e-h6{ color:violet; }
 
+.e-li1{color:coral;}
+.e-li2{color:cornflowerblue;}
+.e-li3{color:darkseagreen;}
+
 .e-b{font-weight:bold;}
 .e-em{font-weight:bold;font-style:italic;}
 .e-i{font-style: italic;}
 .e-del{text-decoration: line-through;}
-
+.e-img{text-decoration:underline; color:coral;}
 .e-link{position: relative;color:aqua}
+.e-blockquote{color:#ddd; background-color: #300;}
 </style>
 
 
@@ -148,6 +154,7 @@ socket.on('connect', function () {
       //     val.innerHTML = strIns(val.innerHTML, jmsg.c.start, jmsg.insert);
       //   }
     }
+    HighlightingEditor();
   });
 
   socket.on('exit',function(msg){//終了を受け取ったらSocket通信を終了する
@@ -195,24 +202,12 @@ function HighlightingEditor(){
   var output_html = "";
   var markdown_txt = document.getElementById('EditorTextArea').innerText;
 
-  // input = markdown.trim();
-  var lines = markdown_txt.split(/\r?\n/);
-  var curLine = 0;
-  function getNextLine(){
-    if(lines.length <= curLine) return null
-    var l = lines[curLine];
-    curLine++;
-    return l;
-  }
-  curTag = {tag:null, index:0, index_str:0}
-
   // while(true){
   //   var l = getNextLine();
   //   if(l === null) break;
   //   output_html += l;
   // }
 
-  output_html = markdown_txt;
   // console.log(output_html)
 
   // //ul
@@ -267,21 +262,23 @@ function HighlightingEditor(){
   var inner_tags = [
       [/\*{2}(.+?)\*{2}/g, "<cpan class=\"e-strong\">**$1**</span>"],
       [/ _{2}(.+?)_{2} /g, "<cpan class=\"e-strong\">__$1__</span>"],
-      [/\*(.+?)\*/g, "<cpan class=\"e-em\">*$1*</span>"],
+      [/~(\*)\*(.+?)\*~(\*)/g, "<cpan class=\"e-em\">*$1*</span>"],
       [/ _(.+?)_ /g, "<cpan class=\"e-em\">_$1_</span>"],
       [/`(.+?)`/g, "<cpan class=\"e-code\">`$1`</span>"],
       [/~~(.+?)~~/, "<cpan class=\"e-del\">~~$1~~</span>"],
 
       //image
-      [/!\[(.*?)\]\((.+?)\)/g, "<span class=\"e-img\">![$2](<a href=$2><span class=\"e-link\">$2</span></a>)</span>"],
+      [/!\[(.*?)\]\((.*?)\)/g, "<span class=\"e-img\">![$1](<a href=\"$2\"><span class=\"e-link\">$2</span></a>)</span>"],
       
       // link
-      [/\[(.+?)\]\((.+?)\)/g, "<span class=\"e-link\">[$1](<a href=$2><span class=\"e-link\">$2</span></a>)</span>"],
+      [/~(\!)\[(.*?)\]\((.*?)\)/g, "<span class=\"e-link\">[$1](<a href=\"$2\"><span class=\"e-link\">$2</span></a>)</span>"],
 
       // native url
       [/(\b(https?|ftp|file|http):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig, "<a href=\"$1\" class=\"e-link\">$1</a>"],
 
-      // headers
+  ];
+
+  var line_tags = [
       [/^\# (.+)\n/gm, "<span class=\"e-h1\"># $1</span>\n"],
       [/^[\#]{2} (.+)\n/gm, "<span class=\"e-h2\">## $1</span>\n"],
       [/^[\#]{3} (.+)\n/gm, "<span class=\"e-h3\">### $1</span>\n"],
@@ -293,14 +290,161 @@ function HighlightingEditor(){
       [/^(.+)\n\---(.+)/gm, "<span class=\"e-h2\">$1</span>\n---$2"],
 
       // blockquote
-      [/^\> (.+)\n/gm, "<span class=\"e-blockquote\">$1</span>"],
+      [/^&gt; (.*?)\n/gm, "<span class=\"e-blockquote\">&gt; $1</span>\n"],
+
+      // Listing
+      [/^\- (.+)\n/gm, "<span class=\"e-li1\">- $1</span>\n"],
+      [/^\* (.+)\n/gm, "<span class=\"e-li1\">* $1</span>\n"],
+      [/^\+ (.+)\n/gm, "<span class=\"e-li1\">+ $1</span>\n"],
+
+      [/^  \- (.+)\n/gm, "<span class=\"e-li2\">  - $1</span>\n"],
+      [/^  \* (.+)\n/gm, "<span class=\"e-li2\">  * $1</span>\n"],
+      [/^  \+ (.+)\n/gm, "<span class=\"e-li2\">  + $1</span>\n"],
+
+      [/^    \- (.+)\n/gm, "<span class=\"e-li3\">    - $1</span>\n"],
+      [/^    \* (.+)\n/gm, "<span class=\"e-li3\">    * $1</span>\n"],
+      [/^    \+ (.+)\n/gm, "<span class=\"e-li3\">    + $1</span>\n"],
   ];
 
-  escapes.forEach(function(x){ output_html = output_html.replace(x[0], x[1]) });
-  inner_tags.forEach(function(x){ output_html = output_html.replace(x[0], x[1]) });
+  escapes.forEach(function(x){ markdown_txt = markdown_txt.replace(x[0], x[1]) });
+  line_tags.forEach(function(x){ markdown_txt = markdown_txt.replace(x[0], x[1]) });
+  inner_tags.forEach(function(x){ markdown_txt = markdown_txt.replace(x[0], x[1]) });
 
-  document.getElementById('EditorTextArea').innerHTML = output_html;
+  curTag = {tag:null, index:0, index_str:0}
+
+  // inner_tags.forEach(function(x){ output_html = output_html.replace(x[0], x[1]) });
+
+  document.getElementById('EditorTextArea').innerHTML = "<pre>" + markdown_txt  + "</pre>";
 }
+
+
+// function HighlightingEditor(){
+//   var output_html = "";
+//   var markdown_txt = document.getElementById('EditorTextArea').innerText;
+
+//   // while(true){
+//   //   var l = getNextLine();
+//   //   if(l === null) break;
+//   //   output_html += l;
+//   // }
+
+//   // console.log(output_html)
+
+//   // //ul
+//   // md = md.replace(/^\s*\n\*/gm, '<ul>\n*');
+//   // md = md.replace(/^(\*.+)\s*\n([^\*])/gm, '$1\n</ul>\n\n$2');
+//   // md = md.replace(/^\*(.+)/gm, '<li>$1</li>');
+  
+//   // //ol
+//   // md = md.replace(/^\s*\n\d\./gm, '<ol>\n1.');
+//   // md = md.replace(/^(\d\..+)\s*\n([^\d\.])/gm, '$1\n</ol>\n\n$2');
+//   // md = md.replace(/^\d\.(.+)/gm, '<li>$1</li>');
+  
+//   // //blockquote
+//   // md = md.replace(/^\>(.+)/gm, '<blockquote>$1</blockquote>');
+  
+//   // //font styles
+//   // md = md.replace(/[\*\_]{2}([^\*\_]+)[\*\_]{2}/g, '<b>$1</b>');
+//   // md = md.replace(/[\*\_]{1}([^\*\_]+)[\*\_]{1}/g, '<i>$1</i>');
+//   // md = md.replace(/[\~]{2}([^\~]+)[\~]{2}/g, '<del>$1</del>');
+  
+//   // //pre
+//   // md = md.replace(/^\s*\n\`\`\`(([^\s]+))?/gm, '<pre class="$2">');
+//   // md = md.replace(/^\`\`\`\s*\n/gm, '</pre>\n\n');
+  
+//   // //code
+//   // md = md.replace(/[\`]{1}([^\`]+)[\`]{1}/g, '<code>$1</code>');
+  
+//   // //p
+//   // md = md.replace(/^\s*(\n)?(.+)/gm, function(m){
+//   //   return  /\<(\/)?(h\d|ul|ol|li|blockquote|pre|img)/.test(m) ? m : '<p>'+m+'</p>';
+//   // });
+  
+//   // //strip p from pre
+//   // md = md.replace(/(\<pre.+\>)\s*\n\<p\>(.+)\<\/p\>/gm, '$1$2');
+  
+
+//   var escapes = [
+//       [/&/g, "&amp;"],
+//       [/\\\\/g, "&#92"],
+//       [/\\\(/g, "&#40"],
+//       [/\\\)/g, "&#41"],
+//       [/\\\*/g, "&#42"],
+//       [/\\\[/g, "&#91"],
+//       [/\\\]/g, "&#93"],
+//       [/\\_/g, "&#95"],
+//       [/\\`/g, "&#96"],
+//       [/\\~/g, "&#126"],
+//       [/>/g, "&gt;"],
+//       [/</g, "&lt;"],
+//   ];
+
+//   var inner_tags = [
+//       [/\*{2}(.+?)\*{2}/g, "<cpan class=\"e-strong\">**$1**</span>"],
+//       [/ _{2}(.+?)_{2} /g, "<cpan class=\"e-strong\">__$1__</span>"],
+//       [/\*(.+?)\*/g, "<cpan class=\"e-em\">*$1*</span>"],
+//       [/ _(.+?)_ /g, "<cpan class=\"e-em\">_$1_</span>"],
+//       [/`(.+?)`/g, "<cpan class=\"e-code\">`$1`</span>"],
+//       [/~~(.+?)~~/, "<cpan class=\"e-del\">~~$1~~</span>"],
+
+//       //image
+//       [/!\[(.+?)\]\((.+?)\)/g, "<span class=\"e-img\">![$1](<a href=$2><span class=\"e-link\">$2</span></a>)</span>"],
+      
+//       // link
+//       [/\[(.+?)\]\((.+?)\)/g, "<span class=\"e-link\">[$1](<a href=$2><span class=\"e-link\">$2</span></a>)</span>"],
+
+//       // native url
+//       [/(\b(https?|ftp|file|http):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig, "<a href=\"$1\" class=\"e-link\">$1</a>"],
+
+//   ];
+
+//   var line_tags = [
+//       // headers
+//       [/^\# (.+)/gm, "<span class=\"e-h1\"># $1</span>\n"],
+//       [/^[\#]{2} (.+)/gm, "<span class=\"e-h2\">## $1</span>\n"],
+//       [/^[\#]{3} (.+)/gm, "<span class=\"e-h3\">### $1</span>\n"],
+//       [/^[\#]{4} (.+)/gm, "<span class=\"e-h4\">#### $1</span>\n"],
+//       [/^[\#]{5} (.+)/gm, "<span class=\"e-h5\">##### $1</span>\n"],
+//       [/^[\#]{6} (.+)/gm, "<span class=\"e-h6\">###### $1</span>\n"],
+      
+//       // [/^\# (.+)\n/gm, "<span class=\"e-h1\"># $1</span>\n"],
+//       // [/^[\#]{2} (.+)\n/gm, "<span class=\"e-h2\">## $1</span>\n"],
+//       // [/^[\#]{3} (.+)\n/gm, "<span class=\"e-h3\">### $1</span>\n"],
+//       // [/^[\#]{4} (.+)\n/gm, "<span class=\"e-h4\">#### $1</span>\n"],
+//       // [/^[\#]{5} (.+)\n/gm, "<span class=\"e-h5\">##### $1</span>\n"],
+//       // [/^[\#]{6} (.+)\n/gm, "<span class=\"e-h6\">###### $1</span>\n"],
+      
+//       // [/^(.+)\n\===(.+)/gm, "<span class=\"e-h1\">$1</span>\n===$2"],
+//       // [/^(.+)\n\---(.+)/gm, "<span class=\"e-h2\">$1</span>\n---$2"],
+
+//       // blockquote
+//       [/^\> (.+)\n/gm, "<span class=\"e-blockquote\">$1</span>"],
+
+
+//       // Listing
+//       [/^\- (.+)/gm, "<span class=\"e-li\">- $1</span>\n"],
+//       [/^\* (.+)/gm, "<span class=\"e-li\">* $1</span>\n"],
+//       [/^\+ (.+)/gm, "<span class=\"e-li\">+ $1</span>\n"],
+//   ];
+
+//   escapes.forEach(function(x){ markdown_txt = markdown_txt.replace(x[0], x[1]) });
+
+//   // input = markdown.trim();
+//   var lines = markdown_txt.split(/\r?\n/);
+//   var curLine = 0;
+//   lines.forEach(lstr => {
+//     var lstr_2 = lstr;
+//     line_tags.forEach(function(x){ lstr_2 = lstr_2.replace(x[0], x[1]) });
+//   });
+
+//   inner_tags.forEach(function(x){ output_html = output_html.replace(x[0], x[1]) });
+
+//   curTag = {tag:null, index:0, index_str:0}
+
+//   // inner_tags.forEach(function(x){ output_html = output_html.replace(x[0], x[1]) });
+
+//   document.getElementById('EditorTextArea').innerHTML = output_html;
+// }
 
 
 // function getCursorPos(element) {
@@ -536,31 +680,15 @@ function _scroll() {
     </div>
   </header>
 
-  <main>
+  <section>
     
     <!-- <pre> -->
       <!-- <code  id="editor"> -->
         <div class="markdown" id="EditorTextArea" 
           tabindex="-1"  contenteditable="true"
         > 
-# hhoge
-## header 1
-### header 2
-#### header3
-##### header 4
-###### header 5
-> aa
-aaa
-Some test....
-|テーブル|左寄せ|中央寄せ|右寄せ|
-|---|:---|:---:|---:|
-| 行1 | かきくけこ | あいうえお | 123 |
-| 行2 | けこ       | えお       | 45  |
-
-スペース4つで文書になります。
-タブ一つでもOK
-
-> >は引用です。
+        <p>hogehoge</p>
+        hogehogehoge
       </div>
       <!-- </code> -->
     <!-- </pre> -->
@@ -573,7 +701,7 @@ Some test....
         > Some test....<br></p>
     </div> -->
 
-  </main>
+  <section>
 
     <h2>Messages</h2>
     <div>
@@ -590,6 +718,16 @@ Some test....
         // editorDiv.addEventListener('compositionend', _onKeyUp);
         editorDiv.addEventListener('keyup', _onKeyUp);
         editorDiv.addEventListener('scroll', _scroll);
+
+        //init editor text
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', 'getAllText');
+        xhr.onload = function () {
+          console.log(xhr.response);
+          editorDiv.innerText = xhr.response;
+          last_text = xhr.response;
+        };
+        xhr.send();
 
         HighlightingEditor();
       };
