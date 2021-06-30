@@ -274,7 +274,7 @@ function HighlightingEditor(){
       [/~(\!)\[(.*?)\]\((.*?)\)/g, "<span class=\"e-link\">[$1](<a href=\"$2\"><span class=\"e-link\">$2</span></a>)</span>"],
 
       // native url
-      [/(\b(https?|ftp|file|http):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig, "<a href=\"$1\" class=\"e-link\">$1</a>"],
+      [/~(<span class=\"e-link\">)(\b(https?|ftp|file|http):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig, "<a href=\"$1\" class=\"e-link\">$1</a>"],
 
   ];
 
