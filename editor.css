@@ -1,0 +1,144 @@
+
+*{color:#fff;}
+
+/* html,bodyタグの設定 */
+html, body{
+  margin: 0;         /* 余白の削除 */
+  padding: 0;        /* 余白の削除 */
+  width:100%;
+  height:100%;
+  background-color: #333;
+  color:#fff;
+}
+
+textarea, input{
+    background-color: #111;
+    color:#fff;
+    border: solid 1px #777;
+}
+
+textarea{ width: 90%; }
+
+main{
+  padding:160px 0 160px 0;    /* 上下に160pxを余白を取る */
+  width:100%; 
+  margin:auto
+}
+
+#EditorTextArea{
+    background-color: #111;
+    color:#fff;
+    border: solid 1px #777;
+    width:100%;
+    height:100%;
+    /* cursor: text;
+    outline: none;
+    outline-color: currentcolor;
+    overflow-y: auto;
+    padding: 12px 15px;
+    tab-size: 4;
+    text-align: left;
+    white-space: pre-wrap;
+    word-wrap: break-word; */
+}
+
+header{
+  background-color: red;
+  position: fixed; 
+  top: 0px;
+  left: 0px; 
+  width: 100%;
+  height: 140px; 
+}
+
+footer{
+  position: fixed;
+  width: 100%;
+  height: 140px;
+  left: 0;
+  right:0;
+  bottom: 0;
+  width: 100%;
+  background-color: red;
+  color: white;
+  text-align: center;
+}
+
+/*----------------------------------------------------------
+                      Editor Textarea styles
+----------------------------------------------------------*/
+.e-h1{
+  color:#f66;
+  font-weight:bold;
+  font-size:2.0rem;
+}
+
+.e-h2{
+  color:#f66;
+  font-weight:bold;
+  font-size:1.5rem;
+}
+
+.e-h3, .e-h4{
+  color:darkgoldenrod;
+  font-weight:bold;
+  font-size:1.1rem;
+}
+
+.e-h5, .e-h6{ color:violet; }
+
+.e-li1{color:coral;}
+.e-li2{color:cornflowerblue;}
+.e-li3{color:darkseagreen;}
+
+.e-b{font-weight:bold;}
+.e-em{font-weight:bold;font-style:italic;}
+.e-i{font-style: italic;}
+.e-del{text-decoration: line-through;}
+.e-img{text-decoration:underline; color:coral;}
+.e-link{position: relative;color:aqua}
+.e-blockquote{color:#ddd; background-color: #300;}
+
+
+
+/*----------------------------------------------------------
+                      Header
+----------------------------------------------------------*/
+.editor-logo{
+  width:40px;
+  margin-left: 10px;
+}
+.editor-title{
+  font-size: 2.0rem;
+  font-weight: bold;
+  text-align: center;
+  margin:0;
+  padding:0;
+}
+
+.menu-btn-list input {
+  display: none;
+}
+.menu-btn-list label i,
+.menu-btn-list label a i{
+  color:#fff;
+}
+
+.menu-btn-list label {
+  border: 2px solid #999;
+  border-radius: 10px;
+  text-align: center;
+  display: inline-block;
+  padding: 3px 0px;
+  width: 60px;
+}
+.menu-btn-list input:checked + label,
+.menu-btn-list input:checked + label i {
+  color: #000;
+  background-color: #ddd;
+}
+
+.menu-btn-list label:hover {
+    border: 2px solid #ddd;
+    cursor: pointer;
+}

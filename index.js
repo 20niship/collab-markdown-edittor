@@ -60,6 +60,22 @@ app.get('/getAllText', function(req, res){
     res.end();
 });
 
+app.get("/editor.css",function(req, res){
+  fs.readFile("./editor.css", function (err, data) {
+    res.writeHead(200, { "Content-Type": "text/css" });
+    res.write(data);
+    res.end();
+  });
+})
+
+app.get('/editor_client.js', function(req, res) {
+  fs.readFile("./editor_client.js", function (err, data) {
+    res.writeHead(200, { "Content-Type": "text/javascript" });
+    res.write(data);
+    res.end();
+  });
+});
+
 
 var clients = []
 
